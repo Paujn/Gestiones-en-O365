@@ -2,10 +2,14 @@
 
 Script hecho por Pau Juan Nieto
 Fecha 04/10/2018
-Versión 1.3
+Versión 1.4
 
 Changelog:
 ************************************************
+22/02/2021 - 1.4
+-Se añade la funcionalidad de comprobar las licencias asignadas a una cuenta.
+-Se retira el desactivado automático del automapping
+-Se añade la opción de agregar el permiso "ReadPermission"
 08/07/2019 - 1.3.1
 - Se desactiva por defecto la opción de automapping a la hora de activar permisos.
 02/01/2019 - 1.3
