@@ -1,10 +1,15 @@
-﻿<# 
+<# 
 Script hecho por Pau Juan Nieto
 Fecha 04/10/2018
 Versión 1.3
 
 Changelog:
 ************************************************
+22/02/2021 - 1.4
+-Se añade la funcionalidad de comprobar las licencias asignadas a una cuenta.
+-Se retira el desactivado automático del automapping
+-Se añade la opción de agregar el permiso "ReadPermission"
+
 08/07/2019 - 1.3.1
 - Se desactiva por defecto la opción de automapping a la hora de activar permisos.
 
@@ -26,7 +31,7 @@ Changelog:
 
 # Guardamos las credenciales de inicio de sesión de manera encriptada (Usuario Administrador de Office365)
 
-$creds= Get-Credential
+$creds = Get-Credential
 
 # Iniciamos la conexión contra Azure y la nube
 
@@ -45,199 +50,247 @@ do {
     Clear-Host
     $validall = 'n'
 
-    echo ''
-    echo 'Herramientas de Office 365'
-    echo '*******************************************'
-    echo '1. Revisar usuarios en la nube'
-    echo '2. Ver permisos de correo sobre una cuenta'
-    echo '3. Modificar permisos de correo sobre una cuenta'
-    echo '4. Desactivar AutoMapping'
-    echo '*******************************************'
+    Write-Output ''
+    Write-Output 'Herramientas de Office 365'
+    Write-Output '*******************************************'
+    Write-Output '1. Revisar usuarios en la nube'
+    Write-Output '2. Ver permisos de correo sobre una cuenta'
+    Write-Output '3. Modificar permisos de correo sobre una cuenta'
+    Write-Output '4. Ver licencia(s) asignadas sobre una cuenta'
+    Write-Output '5. Desactivar AutoMapping'
+    Write-Output '*******************************************'
 
-    $accion=Read-Host 'Opcion'
+    $accion = Read-Host 'Opcion'
 
-    switch($accion){
+    switch ($accion) {
 
-        1{  # Leemos el String y se realiza la busqueda
+        1 {
+            # Leemos el String y se realiza la busqueda
 
-            $recurrent="s"
+            $recurrent = "s"
 
-            while($recurrent -eq "s"){
+            while ($recurrent -eq "s") {
 
                 Clear-Host
 
                 $azure_string = Read-Host -Prompt 'Introduce string'
-                $result=Get-MsolUser -SearchString "$azure_string" | Select UserPrincipalName, DisplayName, isLicensed, ProxyAddresses | Sort-Object UserPrincipalName | Format-Table
+                $result = Get-MsolUser -SearchString "$azure_string" | Select-Object UserPrincipalName, DisplayName, isLicensed, ProxyAddresses | Sort-Object UserPrincipalName | Format-Table
 
                 # Error por si la variable $result tiene un valor nulo
 
-                if($result){$result}else{Write-Host -ForegroundColor Red "No se encontraron resultados para $azure_string"}
+                if ($result) { $result }else { Write-Host -ForegroundColor Red "No se encontraron resultados para $azure_string" }
 
                 # Submenu
 
                 $recurrent = Read-Host -Prompt '¿Realizar otra busqueda? (s/n)'
-                if($recurrent -eq 'n'){$validall=Read-Host -Prompt '¿Realizar otra operación? (s/n)'}
+                if ($recurrent -eq 'n') { $validall = Read-Host -Prompt '¿Realizar otra operación? (s/n)' }
 
             }
         }
-        2{  # Iniciamos la consulta sobre la cuenta de correo
+        2 {
+            # Iniciamos la consulta sobre la cuenta de correo
 
-            $recurrent="s"
+            $recurrent = "s"
 
-            while($recurrent -eq "s"){
+            while ($recurrent -eq "s") {
 
                 Clear-Host
     
                 $account = Read-Host -Prompt 'Introducir cuenta de correo'
-                $result=get-mailboxpermission $account | Select User,AccessRights | Sort-Object User | Format-Table
+                $result = get-mailboxpermission $account | Select-Object User, AccessRights | Sort-Object User | Format-Table
 
                 # Error por si la variable $result tiene un valor nulo
 
-                if($result){$result}else{Write-Host -ForegroundColor Red "No se encontraron resultados para $account"}
+                if ($result) { $result }else { Write-Host -ForegroundColor Red "No se encontraron resultados para $account" }
 
                 # Submenu
 
                 $recurrent = Read-Host -Prompt '¿Realizar otra consulta? (s/n)'
-                if($recurrent -eq 'n'){$validall=Read-Host -Prompt '¿Realizar otra operación? (s/n)'}
+                if ($recurrent -eq 'n') { $validall = Read-Host -Prompt '¿Realizar otra operación? (s/n)' }
 
             }
 
         }
-        3{
+        3 {
             # Menu
             
             Clear-Host
 
-            echo ''
-            echo 'Modificar permisos de correo en Office 365'
-            echo '*******************************************'
-            echo '1. Agregar permisos (full access)'
-            echo '2. Quitar permisos (full access)'
-            echo '*******************************************'
+            Write-Output ''
+            Write-Output 'Modificar permisos de correo en Office 365'
+            Write-Output '*******************************************'
+            Write-Output '1. Agregar permisos'
+            Write-Output '2. Quitar permisos'
+            Write-Output '*******************************************'
 
-            $operation=Read-Host 'Opción'
+            $operation = Read-Host 'Opción'
 
-            switch($operation){
+            switch ($operation) {
 
-                1{
-                 $recurrent="s"
-                 while($recurrent -eq "s"){
+                1 {
+                    $recurrent = "s"
+                    while ($recurrent -eq "s") {
                     
-                    # Menu
+                        # Menu
                     
-                    Clear-Host
+                        Clear-Host
     
-                    echo ''
-                    echo 'Agregar Permisos'
-                    echo '*******************************************'
-                    echo '1. Agregar permisos a una cuenta'
-                    echo '2. Usar archivo TXT con listado de usuarios'
-                    echo '*******************************************'
+                        Write-Output ''
+                        Write-Output 'Agregar Permisos'
+                        Write-Output '*******************************************'
+                        Write-Output '1. Agregar permisos a una cuenta (full access)'
+                        Write-Output '2. Agregar permisos a una cuenta (read access)'
+                        Write-Output '3. Usar archivo TXT con listado de usuarios (full access)'
+                        Write-Output '*******************************************'
 
-                    $opsadd = Read-Host 'Opcion'
+                        $opsadd = Read-Host 'Opcion'
 
-                    switch($opsadd){
+                        switch ($opsadd) {
 
-                        # Se leen los datos de la operación y se agregan los permisos sobre las cuentas especificadas
+                            # Se leen los datos de la operación y se agregan los permisos sobre las cuentas especificadas
 
-                        1{
-                        $account=Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
-                        $useraccount=Read-Host 'Introduce la cuenta a agregar'
-                        Add-MailboxPermission -Identity $account -User $useraccount -AccessRights FullAccess -InheritanceType All -AutoMapping:$false
-                        Add-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount}
+                            1 {
+                                $account = Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
+                                $useraccount = Read-Host 'Introduce la cuenta que obtendra los permisos'
+                                Add-MailboxPermission -Identity $account -User $useraccount -AccessRights FullAccess -InheritanceType All
+                                Add-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount
+                            }
 
-                        2{
-                        $account=Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
-                        $path=Read-Host 'Introduce la ruta del fichero TXT con los usuarios'
-                        foreach($useraccount in [System.IO.File]::ReadLines("$path")){
-                            echo "Procesando $useraccount"
-                            Add-MailboxPermission -Identity $account -User $useraccount -AccessRights FullAccess -InheritanceType All -AutoMapping:$false
-                            Add-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount}
-                        }
-                    }
-                    $recurrent = Read-Host -Prompt '¿Seguir modificando permisos? (s/n)'
-                    if($recurrent -eq 'n'){$validall=Read-Host -Prompt '¿Realizar otra operación? (s/n)'}
-                    }
-                 }
+                            2 {
+                                $account = Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
+                                $useraccount = Read-Host 'Introduce la cuenta que obtendra los permisos'
+                                Add-MailboxPermission -Identity $account -User $useraccount -AccessRights ReadPermission -InheritanceType All
+                                Add-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount
+                            }
 
-                2{
-
-                    # Menu
-
-                    $recurrent="s"
-                    while($recurrent -eq "s"){
-                    Clear-Host
-    
-                    echo ''
-                    echo 'Quitar Permisos'
-                    echo '*******************************************'
-                    echo '1. Quitar permisos a una cuenta'
-                    echo '2. Usar archivo TXT con listado de usuarios'
-                    echo '*******************************************'
-
-                    $opsadd = Read-Host 'Opcion'
-
-                    switch($opsadd){
-                        
-                        # Se leen los datos de la operación y se quitan los permisos sobre las cuentas especificadas
-
-                        1{
-                        $account=Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
-                        $useraccount=Read-Host 'Introduce la cuenta a borrar'
-                        Remove-MailboxPermission -Identity $account -User $useraccount -AccessRights FullAccess
-                        Remove-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount}
-
-                        2{
-                        $account=Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
-                        $path=Read-Host 'Introduce la ruta del fichero TXT con los usuarios'
-                        foreach($useraccount in [System.IO.File]::ReadLines("$path")){
-                            echo "Procesando $useraccount"
-                            Remove-MailboxPermission -Identity $account -User $useraccount -AccessRights FullAccess
-                            Remove-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount}
-                        }
+                            3 {
+                                $account = Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
+                                $path = Read-Host 'Introduce la ruta del fichero TXT con los usuarios'
+                                foreach ($useraccount in [System.IO.File]::ReadLines("$path")) {
+                                    Write-Output "Procesando $useraccount"
+                                    Add-MailboxPermission -Identity $account -User $useraccount -AccessRights FullAccess -InheritanceType All
+                                    Add-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount
                                 }
-                    $recurrent = Read-Host -Prompt '¿Seguir modificando permisos? (s/n)'
-                    if($recurrent -eq 'n'){$validall=Read-Host -Prompt '¿Realizar otra operación? (s/n)'}
+                            }
+                        }
+                        $recurrent = Read-Host -Prompt '¿Seguir modificando permisos? (s/n)'
+                        if ($recurrent -eq 'n') { $validall = Read-Host -Prompt '¿Realizar otra operación? (s/n)' }
+                    }
+                }
+
+                2 {
+
+                    # Menu
+
+                    $recurrent = "s"
+                    while ($recurrent -eq "s") {
+                        Clear-Host
+    
+                        Write-Output ''
+                        Write-Output 'Quitar Permisos'
+                        Write-Output '*******************************************'
+                        Write-Output '1. Quitar permisos a una cuenta (full access)'
+                        Write-Output '2. Quitar permisos a una cuenta (read access)'
+                        Write-Output '3. Usar archivo TXT con listado de usuarios (full access)'
+                        Write-Output '*******************************************'
+
+                        $opsadd = Read-Host 'Opcion'
+
+                        switch ($opsadd) {
+                        
+                            # Se leen los datos de la operación y se quitan los permisos sobre las cuentas especificadas
+
+                            1 {
+                                $account = Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
+                                $useraccount = Read-Host 'Introduce la cuenta que perdera los permisos'
+                                Remove-MailboxPermission -Identity $account -User $useraccount -AccessRights FullAccess
+                                Remove-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount
+                            }
+                        
+                            2 {
+                                $account = Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
+                                $useraccount = Read-Host 'Introduce la cuenta que perdera los permisos'
+                                Remove-MailboxPermission -Identity $account -User $useraccount -AccessRights ReadPermission
+                                Remove-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount
+                            }
+
+                            3 {
+                                $account = Read-Host 'Introduce la cuenta sobre la cual se modificaran los permisos'
+                                $path = Read-Host 'Introduce la ruta del fichero TXT con los usuarios'
+                                foreach ($useraccount in [System.IO.File]::ReadLines("$path")) {
+                                    Write-Output "Procesando $useraccount"
+                                    Remove-MailboxPermission -Identity $account -User $useraccount -AccessRights FullAccess
+                                    Remove-RecipientPermission $account -AccessRights SendAs -Trustee $useraccount
+                                }
+                            }
+                        }
+                        $recurrent = Read-Host -Prompt '¿Seguir modificando permisos? (s/n)'
+                        if ($recurrent -eq 'n') { $validall = Read-Host -Prompt '¿Realizar otra operación? (s/n)' }
                     }
                 }
             }
         }
-        4{
-        
-         # Leemos el String y se realiza la operación de desactivar el automapeo
+        4 {
+            # Leemos string y se realiza la búsqueda
+            $recurrent = "s"
 
-            $recurrent="s"
-            while($recurrent -eq "s"){
-            Clear-Host
+            while ($recurrent -eq "s") {
 
-            echo ''
-            echo 'Selecciona una opción'
-            echo '*******************************************'
-            echo '1. Desactivar automapping para un usuario de un buzón compartido'
-            echo '2. Desactivar automapping para todos los usuarios de un buzón compartido '
-            echo '*******************************************'
-            echo ''
-            
-            $opsadd = Read-Host 'Opcion'
+                Clear-Host
 
-            switch($opsadd){
+                $azure_string = Read-Host -Prompt 'Introduce la cuenta sobre la cual se quieren revisar los permisos'
 
-                1{
-                $account = Read-Host -Prompt 'Introduce la cuenta de correo compartida'
-                $usermapping = Read-Host -Prompt 'Introduce la cuenta de correo del usuario'
-                Remove-MailboxPermission -Identity $account -User $usermapping -AccessRights FullAccess
-                Add-MailboxPermission -Identity $account  -User  $usermapping -AccessRights FullAccess -AutoMapping:$false}
+                $result = Get-MsolUser -SearchString "$azure_string" | Select-Object UserPrincipalName, DisplayName, isLicensed, licenses | Sort-Object UserPrincipalName | Format-Table
 
-                2{
-                $account = Read-Host -Prompt 'Introduce la cuenta de correo'
-                Remove-MailboxPermission $account  –ClearAutoMapping}
+                # Error por si la variable $result tiene un valor nulo
 
-                           }
-            $recurrent = Read-Host -Prompt '¿Desactivar automapping de otra cuenta? (s/n)'
-            if($recurrent -eq 'n'){$validall=Read-Host -Prompt '¿Realizar otra operación? (s/n)'}
+                if ($result) { $result }else { Write-Host -ForegroundColor Red "No se encontraron resultados para $azure_string" }
+
+                # Submenu
+
+                $recurrent = Read-Host -Prompt '¿Realizar otra busqueda? (s/n)'
+                if ($recurrent -eq 'n') { $validall = Read-Host -Prompt '¿Realizar otra operación? (s/n)' }
 
             }
         }
+        5 {
+            # Leemos el String y se realiza la operación de desactivar el automapeo
+
+            $recurrent = "s"
+            while ($recurrent -eq "s") {
+                Clear-Host
+
+                Write-Output ''
+                Write-Output 'Selecciona una opción'
+                Write-Output '*******************************************'
+                Write-Output '1. Desactivar automapping para un usuario de un buzón compartido'
+                Write-Output '2. Desactivar automapping para todos los usuarios de un buzón compartido '
+                Write-Output '*******************************************'
+                Write-Output ''
+            
+                $opsadd = Read-Host 'Opcion'
+
+                switch ($opsadd) {
+
+                    1 {
+                        $account = Read-Host -Prompt 'Introduce la cuenta de correo compartida'
+                        $usermapping = Read-Host -Prompt 'Introduce la cuenta de correo del usuario'
+                        Remove-MailboxPermission -Identity $account -User $usermapping -AccessRights FullAccess
+                        Add-MailboxPermission -Identity $account  -User  $usermapping -AccessRights FullAccess
+                    }
+
+                    2 {
+                        $account = Read-Host -Prompt 'Introduce la cuenta de correo'
+                        Remove-MailboxPermission $account  –ClearAutoMapping
+                    }
+
+                }
+                $recurrent = Read-Host -Prompt '¿Desactivar automapping de otra cuenta? (s/n)'
+                if ($recurrent -eq 'n') { $validall = Read-Host -Prompt '¿Realizar otra operación? (s/n)' }
+
+            }
+        }
+        default {Write-Host "Opción no válida" -BackgroundColor Red}
     }
 
 } while ($validall -eq 's') 
@@ -246,4 +299,3 @@ do {
 
 Disconnect-AzureAD
 Remove-PSSession $Session
-
