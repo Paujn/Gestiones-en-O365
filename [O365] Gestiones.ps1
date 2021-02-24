@@ -1,7 +1,7 @@
 <# 
 Script hecho por Pau Juan Nieto
 Fecha 04/10/2018
-Versión 1.3
+Versión 1.4
 
 Changelog:
 ************************************************
